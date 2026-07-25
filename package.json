@@ -12,6 +12,6 @@
     "vite": "^8.1.1"
   },
   "dependencies": {
-    "firebase": "^12.16.0"
+    "gotrue-js": "^1.0.1"
   }
 }

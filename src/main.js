@@ -1,6 +1,6 @@
 import './style.css'
 import { processEntry } from './nlpEngine.js'
-import { auth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from './firebase.js'
+import { auth } from './auth.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Brain Energy Slider Logic
@@ -883,7 +883,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // 3. (Removed auto-close nav bubble)
     });
 
-  // --- FIREBASE AUTHENTICATION LOGIC ---
+  // --- NETLIFY IDENTITY (GOTRUE) AUTHENTICATION LOGIC ---
   const viewAuth = document.getElementById('view-auth');
   const viewVent = document.getElementById('view-vent');
   const bottomDock = document.getElementById('bottomDock');
@@ -917,31 +917,7 @@ document.addEventListener('DOMContentLoaded', () => {
     authError.textContent = '';
   });
 
-  authForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = authEmail.value;
-    const password = authPassword.value;
-    authError.textContent = '';
-    
-    try {
-      if (isSignUpMode) {
-        await createUserWithEmailAndPassword(auth, email, password);
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-      }
-    } catch (error) {
-      authError.textContent = error.message;
-    }
-  });
-
-  if (btnSignOut) {
-    btnSignOut.addEventListener('click', () => {
-      signOut(auth);
-    });
-  }
-
-  // Listen for auth state changes
-  onAuthStateChanged(auth, (user) => {
+  const updateUIForAuth = (user) => {
     // Hide all views first
     document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
     
@@ -956,9 +932,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // Update dummy profile ID in settings if possible
       const ventIdEl = document.querySelector('#set-account .setting-desc');
       if (ventIdEl && ventIdEl.textContent.includes('user_0x')) {
-        ventIdEl.textContent = user.uid.substring(0, 10);
+        ventIdEl.textContent = user.id.substring(0, 10);
       }
-      
     } else {
       // User is logged out
       viewAuth.style.display = 'flex';
@@ -967,7 +942,47 @@ document.addEventListener('DOMContentLoaded', () => {
       if (bottomDock) bottomDock.style.display = 'none';
       if (topHeader) topHeader.style.display = 'none';
     }
+  };
+
+  authForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = authEmail.value;
+    const password = authPassword.value;
+    authError.textContent = '';
+    
+    try {
+      if (isSignUpMode) {
+        await auth.signup(email, password);
+        authError.style.color = '#4caf50'; // green for success
+        authError.textContent = "Account created! Please check your email for a confirmation link.";
+      } else {
+        const user = await auth.login(email, password, true); // true = remember
+        updateUIForAuth(user);
+      }
+    } catch (error) {
+      authError.style.color = '#ff4757'; // reset to red
+      authError.textContent = error.message || error.json?.error_description || "Authentication failed.";
+    }
   });
+
+  if (btnSignOut) {
+    btnSignOut.addEventListener('click', () => {
+      const user = auth.currentUser();
+      if (user) {
+        user.logout().then(() => {
+          updateUIForAuth(null);
+        }).catch(err => {
+          console.error("Error logging out", err);
+          updateUIForAuth(null);
+        });
+      } else {
+        updateUIForAuth(null);
+      }
+    });
+  }
+
+  // Initial Auth Check
+  updateUIForAuth(auth.currentUser());
 
 });
 
