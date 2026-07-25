@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vent - Unburden your mind here</title>
+    <!-- Modern, geometric, wide-spaced sans-serif font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- Brightness Overlay for custom dimming -->
+    <div class="brightness-overlay" id="brightnessOverlay"></div>
+    <div class="typing-backdrop" id="typingBackdrop"></div>
+    
+    
+    <!-- WARNING MODAL -->
+    <div class="warning-modal-overlay" id="warningModal">
+      <div class="warning-modal-card">
+        <h3>Discard Entry?</h3>
+        <p>Are you sure you want to discard what you've written? This cannot be undone.</p>
+        <div class="warning-modal-actions">
+          <button class="warning-cancel" id="btnWarningCancel">Cancel</button>
+          <button class="warning-confirm" id="btnWarningConfirm">Discard</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOALS MODAL -->
+    <div class="goals-modal-overlay" id="goalsModal">
+      <div class="goals-modal-card">
+        <h3>Manage Goals</h3>
+        <p>Rank your goals in order of priority.</p>
+        <div class="goals-list" id="goalsList">
+          <!-- Goals injected via JS -->
+        </div>
+        <div class="goal-input-row">
+          <input type="text" id="newGoalInput" class="custom-input" placeholder="Enter a new goal..." />
+          <button class="settings-btn" id="btnAddGoal">Add</button>
+        </div>
+        <div class="goals-modal-actions">
+          <button class="settings-btn outline" id="btnGoalsClose">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FIXED TOP HEADER -->
+    <header class="top-header">
+      <div class="header-left-cluster">
+        <div class="profile-anchor" id="profileAnchor">
+          <div id="profileAvatarContainer" class="profile-avatar avatar-interactive">
+            <div class="avatar-dot"></div>
+          </div>
+          <div class="profile-info">
+            <div class="user-handle" id="userHandleDisplay">@neurodivergent_</div>
+            <div class="level-info">
+              <span class="system-status" id="entryCount">0 ENTRIES</span>
+            </div>
+          </div>
+          <!-- AI Profile Popover -->
+          <div id="profilePopover" class="profile-popover hidden">
+            <div class="popover-avatar-wrap" id="popoverAvatarWrap">
+              <div class="avatar-dot"></div>
+            </div>
+            <div class="popover-content">
+              <h4 id="popoverArchetypeTitle">Initializing...</h4>
+              <p id="popoverArchetypeDesc">Keep venting to unlock.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="header-right-cluster">
+        <div class="focus-title">FOCUS</div>
+        <div class="capsule-slider" id="brainEnergySlider">
+          <div class="capsule-shifter" id="sliderThumb"></div>
+          <div class="capsule-segment segment-1"><span>SCATTERED</span></div>
+          <div class="capsule-segment segment-2"><span>STEADY</span></div>
+          <div class="capsule-segment segment-3"><span>LOCKED</span></div>
+          <input type="range" class="capsule-input" id="sliderInput" min="1" max="3" step="1" value="2" />
+        </div>
+      </div>
+    </header>
+
+    <!-- VIEWS CONTAINER -->
+    <div class="views-container">
+      
+      <!-- VIEW: VENT (HOME) -->
+      <main class="app-view hero-center active" id="view-vent">
+        <div class="app-brand-stack">
+          <h1 class="brand-title">VENT</h1>
+          <p class="brand-subtext">unburden your mind here.</p>
+        </div>
+        <div class="minimal-input-container">
+          <div class="draft-preview" id="draftPreview"></div>
+          <textarea class="minimal-textarea" id="ventTextarea" placeholder=""></textarea>
+          <div class="popup-actions" id="popupActions">
+            <button class="vent-discard" id="btnVentDiscard" aria-label="Discard Entry">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            <button class="vent-submit" id="btnVentSubmit" aria-label="Submit Vent">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+          </div>
+          <button class="voice-prompt-btn" id="btnSayItInstead">Say it instead?</button>
+          <button class="continue-writing-btn" id="btnContinueWriting">Continue writing</button>
+        </div>
+      </main>
+
+      <!-- VIEW: LOG -->
+      <main class="app-view" id="view-logs">
+        <div class="settings-container logs-main-container">
+          <h2 class="view-title" style="text-align: center; margin-bottom: 24px; margin-top: 40px;">ENTRY LOG</h2>
+          
+          <div class="logs-controls">
+            <input type="text" id="logSearchInput" class="custom-input" placeholder="Search entries..." style="max-width: 300px; width: 100%;">
+            <input type="date" id="logDateFilter" class="custom-input">
+            <select id="logViewToggle" class="custom-select">
+              <option value="list">List View</option>
+              <option value="weekly">Weekly Calendar</option>
+              <option value="monthly">Monthly Calendar</option>
+              <option value="archived">Archived Entries</option>
+            </select>
+          </div>
+
+          <div class="logs-container" id="logsContainer">
+            <!-- Logs injected via JS -->
+          </div>
+
+          <div class="calendar-container" id="calendarContainer" style="display: none;">
+            <!-- Calendar injected via JS -->
+          </div>
+
+          <!-- Inline Edit Modal (Hidden) -->
+          <div id="logEditModal" class="log-edit-modal" style="display: none;">
+            <div class="log-edit-content">
+              <h3>Edit Entry</h3>
+              <textarea id="logEditTextarea" class="custom-input" style="height: 150px; width: 100%; margin: 16px 0;"></textarea>
+              <div class="log-card-actions">
+                <button id="btnLogEditSave" class="log-btn vent-submit">Save Changes</button>
+                <button id="btnLogEditCancel" class="log-btn vent-discard">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Custom Delete Confirmation Modal (Hidden) -->
+          <div id="deleteConfirmModal" class="log-edit-modal" style="display: none;">
+            <div class="log-edit-content" style="max-width: 400px; text-align: center;">
+              <h3 style="color: #ff4757; margin-bottom: 1rem;">Delete Entry</h3>
+              <p style="color: #ccc; margin-bottom: 1.5rem;">Are you sure you want to delete this entry permanently? This action cannot be undone.</p>
+              <div class="log-card-actions" style="justify-content: center; gap: 1rem;">
+                <button id="btnDeleteConfirm" class="log-btn vent-discard" style="background: rgba(255, 71, 87, 0.1); border-color: rgba(255, 71, 87, 0.5); color: #ff4757;">Yes, Delete</button>
+                <button id="btnDeleteCancel" class="log-btn">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- VIEW: MY STORY -->
+      <main class="app-view empty-state-center" id="view-story">
+        <h2 class="view-title">MY STORY</h2>
+        <p class="view-subtitle">A narrative timeline of your journey.</p>
+      </main>
+
+      <!-- VIEW: HOBBIES -->
+      <main class="app-view" id="view-hobbies">
+        <div class="settings-container">
+          <h2 class="view-title" style="text-align: center; margin-bottom: 24px; margin-top: 40px;">HOBBIES</h2>
+          <div id="hobbiesContainer" class="data-container"></div>
+        </div>
+      </main>
+
+      <!-- VIEW: LIFESTYLE -->
+      <main class="app-view" id="view-lifestyle">
+        <div class="settings-container">
+          <h2 class="view-title" style="text-align: center; margin-bottom: 24px; margin-top: 40px;">LIFESTYLE</h2>
+          <div id="lifestyleContainer" class="data-container"></div>
+        </div>
+      </main>
+
+      <!-- VIEW: TO-DO -->
+      <main class="app-view" id="view-todo">
+        <div class="settings-container">
+          <h2 class="view-title" style="text-align: center; margin-bottom: 24px; margin-top: 40px;">TO-DO</h2>
+          
+          <!-- To-Do Custom Date Picker Modal (Hidden) -->
+          <div id="todoDateModal" class="log-edit-modal" style="display: none;">
+            <div class="log-edit-content" style="max-width: 340px; text-align: center; padding: 24px;">
+              <h3 style="margin-bottom: 1rem;">Select Date & Time</h3>
+              
+              <div class="custom-datetime-picker" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <!-- Calendar Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px;">
+                  <button type="button" id="btnCalPrev" style="background: transparent; border: none; color: #fff; cursor: pointer; font-size: 1.2rem; padding: 4px 8px;">◀</button>
+                  <span id="calMonthYear" style="font-weight: 600; font-size: 1.1rem;">July 2026</span>
+                  <button type="button" id="btnCalNext" style="background: transparent; border: none; color: #fff; cursor: pointer; font-size: 1.2rem; padding: 4px 8px;">▶</button>
+                </div>
+                
+                <!-- Calendar Grid -->
+                <div id="calGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; min-height: 200px;">
+                  <!-- Injected by JS -->
+                </div>
+
+                <!-- Time Picker -->
+                <div style="display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 8px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                  <select id="timeHour" class="custom-select" style="width: auto; font-size: 1.1rem; padding: 6px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; outline: none;"></select>
+                  <span style="font-weight: bold; font-size: 1.2rem;">:</span>
+                  <select id="timeMinute" class="custom-select" style="width: auto; font-size: 1.1rem; padding: 6px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; outline: none;"></select>
+                  <select id="timeAmPm" class="custom-select" style="width: auto; font-size: 1.1rem; padding: 6px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; outline: none; margin-left: 4px;">
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="log-card-actions" style="justify-content: center; gap: 1rem;">
+                <button id="btnTodoDateConfirm" class="log-btn vent-submit">Confirm</button>
+                <button id="btnTodoDateCancel" class="log-btn vent-discard">Cancel</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="logs-controls" style="margin-bottom: 1.5rem; display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            <input type="text" id="todoSearchInput" class="custom-input" placeholder="Search tasks..." style="max-width: 300px; width: 100%;">
+            <input type="date" id="todoDateFilter" class="custom-input">
+            
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <select id="todoViewToggle" class="custom-select">
+                <option value="pending">Pending Tasks</option>
+                <option value="completed">Completed Tasks</option>
+                <option value="all">All Tasks</option>
+              </select>
+              
+              <select id="btnViewOption" class="custom-select">
+                <option value="list">List View</option>
+                <option value="weekly">Weekly Calendar</option>
+                <option value="monthly">Monthly Calendar</option>
+              </select>
+            </div>
+          </div>
+
+          <form id="todoQuickAddForm" style="display: flex; gap: 0.5rem; margin: 0 auto 2rem auto; max-width: 600px; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); align-items: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);">
+            <input type="text" id="todoQuickAddInput" class="custom-input" placeholder="Type a new task here..." style="flex: 1; border: none; background: transparent; box-shadow: none; padding-left: 12px; font-size: 1rem;" required>
+            
+            <button type="button" id="btnQuickAddDate" class="log-btn" style="padding: 6px 12px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); min-width: 120px;" title="Set Date & Time">
+              📅 <span id="quickAddDateLabel" style="margin-left: 6px; font-size: 0.85em; color: #ccc;">Add Date</span>
+            </button>
+            <input type="hidden" id="todoQuickAddHiddenDate" value="">
+            
+            <button type="submit" class="log-btn vent-submit" style="padding: 6px 16px; border-radius: 16px; margin-left: 4px;">Add Task</button>
+          </form>
+
+          <div id="todoContainer" class="data-container"></div>
+          <div class="calendar-container" id="todoCalendarContainer" style="display: none;"></div>
+        </div>
+      </main>
+
+      <!-- VIEW: SETTINGS -->
+      <main class="app-view settings-view" id="view-settings">
+        <div class="settings-layout">
+          
+          <!-- Sidebar -->
+          <aside class="settings-sidebar">
+            <h2 class="view-title" style="margin-bottom: 30px;">SETTINGS</h2>
+            <nav class="settings-nav">
+              <button class="settings-tab active" data-tab="set-about">About me</button>
+              <button class="settings-tab" data-tab="set-interface">Interface</button>
+              <button class="settings-tab" data-tab="set-intelligence">Intelligence</button>
+              <button class="settings-tab" data-tab="set-account">Account</button>
+              <button class="settings-tab" data-tab="set-data">Data</button>
+              <button class="settings-tab" data-tab="set-accessibility">Accessibility</button>
+            </nav>
+          </aside>
+
+          <!-- Content Area -->
+          <section class="settings-content">
+            
+            <!-- Pane: About me -->
+            <div class="settings-pane active" id="set-about">
+              <h3>About me</h3>
+              <p class="pane-desc">Personalize how the AI understands you.</p>
+              
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Personal Goals</span>
+                  <span class="setting-desc">Rank your priorities</span>
+                </div>
+                <div class="setting-control">
+                  <button class="settings-btn outline" id="btnManageGoals">Manage Goals</button>
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Pronouns</span>
+                </div>
+                <div class="setting-control">
+                  <input type="text" class="custom-input" id="settingPronouns" placeholder="e.g., they/them">
+                </div>
+              </div>
+              
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Hobbies</span>
+                </div>
+                <div class="setting-control">
+                  <input type="text" class="custom-input" id="settingHobbies" placeholder="e.g., Gaming, Reading">
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Current Hyperfixation</span>
+                </div>
+                <div class="setting-control">
+                  <input type="text" class="custom-input" id="settingHyperfixation" placeholder="e.g., Mechanical keyboards">
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Favorite Place</span>
+                </div>
+                <div class="setting-control">
+                  <input type="text" class="custom-input" id="settingPlace" placeholder="e.g., The library">
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Energy Peak</span>
+                </div>
+                <div class="setting-control">
+                  <select class="custom-select" id="settingEnergy">
+                    <option value="" disabled selected>Select time</option>
+                    <option value="morning">Morning</option>
+                    <option value="afternoon">Afternoon</option>
+                    <option value="evening">Evening</option>
+                    <option value="night">Night Owl</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Zodiac Sign</span>
+                </div>
+                <div class="setting-control">
+                  <select class="custom-select" id="settingZodiac">
+                    <option value="" disabled selected>Select sign</option>
+                    <option value="aries">Aries</option>
+                    <option value="taurus">Taurus</option>
+                    <option value="gemini">Gemini</option>
+                    <option value="cancer">Cancer</option>
+                    <option value="leo">Leo</option>
+                    <option value="virgo">Virgo</option>
+                    <option value="libra">Libra</option>
+                    <option value="scorpio">Scorpio</option>
+                    <option value="sagittarius">Sagittarius</option>
+                    <option value="capricorn">Capricorn</option>
+                    <option value="aquarius">Aquarius</option>
+                    <option value="pisces">Pisces</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pane: Interface -->
+            <div class="settings-pane" id="set-interface">
+              <h3>Interface</h3>
+              <p class="pane-desc">Control the look and feel of the app.</p>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Typography Scale</span>
+                </div>
+                <div class="setting-control">
+                  <select class="custom-select" id="settingFont">
+                    <option value="small">Small</option>
+                    <option value="default" selected>Default</option>
+                    <option value="large">Large</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Light Mode</span>
+                  <span class="setting-desc">Warning: Can be very bright</span>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settingLightMode">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Brightness Override</span>
+                  <span class="setting-desc">Dim the app screen directly</span>
+                </div>
+                <div class="setting-control" style="width: 160px; display: flex; align-items: center;">
+                  <input type="range" class="brightness-slider" id="settingBrightness" min="0" max="80" value="0" style="width: 100%;" />
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Zen Mode</span>
+                  <span class="setting-desc">Hides all non-essential UI elements</span>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settingZen">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+              
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Typewriter Speed</span>
+                </div>
+                <div class="setting-control">
+                  <select class="custom-select" id="settingSpeed">
+                    <option value="slow">Relaxed</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="fast">Fast</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pane: Intelligence -->
+            <div class="settings-pane" id="set-intelligence">
+              <h3>Intelligence</h3>
+              <p class="pane-desc">Controls for the AI's behavior and tone.</p>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Proactive Insights</span>
+                  <span class="setting-desc">Automatically analyze logs for patterns</span>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settingInsights" checked>
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Focus Auto-Switch</span>
+                  <span class="setting-desc">Suggest focus modes based on time of day</span>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settingAutoSwitch">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">AI Tone</span>
+                </div>
+                <div class="setting-control">
+                  <select class="custom-select" id="settingTone">
+                    <option value="empathetic" selected>Empathetic</option>
+                    <option value="direct">Direct</option>
+                    <option value="analytical">Analytical</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pane: Account -->
+            <div class="settings-pane" id="set-account">
+              <h3>Account</h3>
+              <p class="pane-desc">Manage your identity and synchronization.</p>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Profile Name</span>
+                  <span class="setting-desc">Visible on the main header</span>
+                </div>
+                <div class="setting-control">
+                  <input type="text" class="custom-input" id="settingName" placeholder="@neurodivergent_">
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Vent ID</span>
+                  <span class="setting-desc">user_0x94A1F</span>
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Cloud Sync</span>
+                  <span class="setting-desc">Sync data securely across devices</span>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settingSync">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <button class="settings-btn outline">Sign Out</button>
+              </div>
+            </div>
+
+            <!-- Pane: Data -->
+            <div class="settings-pane" id="set-data">
+              <h3>Data Management</h3>
+              <p class="pane-desc">Control your privacy and local storage.</p>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Export Logs</span>
+                  <span class="setting-desc">Download a complete .json of your data</span>
+                </div>
+                <div class="setting-control">
+                  <button class="settings-btn outline" id="btnExportData">Export Data</button>
+                </div>
+              </div>
+
+              <div class="settings-group danger-zone">
+                <div class="settings-row">
+                  <div class="setting-info">
+                    <span class="setting-name" style="color: #ef4444;">Erase All Data</span>
+                    <span class="setting-desc">Permanently wipe all local storage</span>
+                  </div>
+                  <div class="setting-control">
+                    <button class="settings-btn danger" id="btnClearData">Erase</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pane: Accessibility -->
+            <div class="settings-pane" id="set-accessibility">
+              <h3>Accessibility</h3>
+              <p class="pane-desc">Sensory adjustments for a comfortable experience.</p>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Reduce Motion</span>
+                  <span class="setting-desc">Disable 3D physics and fluid animations</span>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settingMotion">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">High Contrast</span>
+                  <span class="setting-desc">Increase text opacity and add borders</span>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settingContrast">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Haptic Feedback</span>
+                  <span class="setting-desc">Vibrate on interaction (if supported)</span>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settingHaptic" checked>
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="setting-info">
+                  <span class="setting-name">Dyslexia-friendly Font</span>
+                  <span class="setting-desc">Use a highly legible fallback font</span>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settingDyslexiaFont">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-notification" id="toastNotification">
+      <button class="toast-close" id="btnToastClose" aria-label="Close notification">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <span id="toastMessage">Vent Saved</span>
+    </div>
+
+    <!-- FLOATING BOTTOM NAVIGATION DOCK -->
+    <nav class="bottom-dock" id="bottomDock">
+      <div class="dock-item active" data-target="view-vent">
+        <svg class="dock-icon vent-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path class="roof" d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span class="dock-label">Vent</span>
+      </div>
+      <div class="dock-item" data-target="view-logs">
+        <svg class="dock-icon logs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6" class="line-1"></line>
+          <line x1="8" y1="12" x2="21" y2="12" class="line-2"></line>
+          <line x1="8" y1="18" x2="21" y2="18" class="line-3"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+        <span class="dock-label">Logs</span>
+      </div>
+      <div class="dock-item" data-target="view-story">
+        <svg class="dock-icon story-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path class="page-left" d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+          <path class="page-right" d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+        </svg>
+        <span class="dock-label">My Story</span>
+      </div>
+      <div class="dock-item" data-target="view-hobbies">
+        <svg class="dock-icon hobbies-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a10 10 0 0 0-10 10c0 5.52 4.48 10 10 10a1 1 0 0 0 1-1v-2.32a1 1 0 0 1 1-1h1.56a4.44 4.44 0 0 0 4.44-4.44A10 10 0 0 0 12 2z"></path>
+          <circle cx="7.5" cy="10.5" r="1.5"></circle>
+          <circle cx="10.5" cy="6.5" r="1.5"></circle>
+          <circle cx="14.5" cy="6.5" r="1.5"></circle>
+          <circle cx="17.5" cy="10.5" r="1.5"></circle>
+        </svg>
+        <span class="dock-label">Hobbies</span>
+      </div>
+      <div class="dock-item" data-target="view-lifestyle">
+        <svg class="dock-icon lifestyle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8 2-8-2v7c0 6 8 10 8 10z"></path>
+        </svg>
+        <span class="dock-label">Lifestyle</span>
+      </div>
+      <div class="dock-item" data-target="view-todo">
+        <svg class="dock-icon todo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="9 12 11 14 15 10" class="check-mark"></polyline>
+        </svg>
+        <span class="dock-label">To do</span>
+      </div>
+      <div class="dock-item" data-target="view-settings">
+        <svg class="dock-icon settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span class="dock-label">Settings</span>
+      </div>
+    </nav>
+    <!-- Calendar Modal -->
+    <div id="calendarEntryModal" class="warning-modal-overlay">
+      <div class="warning-modal-card" style="max-width: 400px; width: 90%; max-height: 80vh; overflow-y: auto;">
+        <h3 id="calendarModalTitle" style="color: #fff; margin-top: 0;">Date</h3>
+        <div id="calendarModalContent" style="margin: 1.5rem 0; color: #d1d1d1; font-size: 0.95rem; line-height: 1.5;"></div>
+        <div class="warning-modal-actions" style="justify-content: center;">
+          <button class="log-btn" id="btnCalendarModalClose">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
