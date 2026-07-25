@@ -17,7 +17,9 @@ body {
   color: var(--text-primary);
   font-family: var(--font-family);
   font-size: var(--base-font-size);
-  min-height: 100vh;
+  height: 100vh; /* Fallback */
+  height: 100dvh;
+  width: 100vw;
   display: flex;
   flex-direction: column;
   overflow: hidden; /* single page app no scroll */
@@ -2282,4 +2284,31 @@ body.input-focused .bottom-dock {
   font-size: 0.85rem;
   margin-top: 0.5rem;
   min-height: 1.2rem;
+}
+
+/* SMARTPHONE OPTIMIZATIONS */
+@media (max-width: 600px) {
+  .bottom-dock {
+    bottom: env(safe-area-inset-bottom, 20px);
+    padding: 8px 12px;
+    gap: 4px;
+    width: 95%;
+    max-width: 400px;
+    justify-content: space-around;
+  }
+  .dock-item {
+    width: 50px;
+    height: 50px;
+  }
+  .dock-icon {
+    width: 20px;
+    height: 20px;
+    margin-bottom: 4px;
+  }
+  .dock-label {
+    font-size: 10px;
+  }
+  .app-view {
+    padding-bottom: 100px; /* Adjust padding for smaller dock */
+  }
 }
