@@ -1,5 +1,6 @@
 import './style.css'
 import { processEntry } from './nlpEngine.js'
+import { auth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from './firebase.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Brain Energy Slider Logic
@@ -881,7 +882,94 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // 3. (Removed auto-close nav bubble)
     });
+
+  // --- FIREBASE AUTHENTICATION LOGIC ---
+  const viewAuth = document.getElementById('view-auth');
+  const viewVent = document.getElementById('view-vent');
+  const bottomDock = document.getElementById('bottomDock');
+  const topHeader = document.querySelector('.top-header');
+  
+  const authForm = document.getElementById('authForm');
+  const authEmail = document.getElementById('authEmail');
+  const authPassword = document.getElementById('authPassword');
+  const authToggleBtn = document.getElementById('authToggleBtn');
+  const authToggleText = document.getElementById('authToggleText');
+  const btnAuthSubmit = document.getElementById('btnAuthSubmit');
+  const authError = document.getElementById('authError');
+  
+  // The Sign Out button from Settings (pane: set-account)
+  const btnSignOut = document.querySelector('#set-account .settings-row:last-child .settings-btn');
+  
+  let isSignUpMode = false;
+
+  authToggleBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    isSignUpMode = !isSignUpMode;
+    if (isSignUpMode) {
+      btnAuthSubmit.textContent = 'Create Account';
+      authToggleText.textContent = 'Already have an account?';
+      authToggleBtn.textContent = 'Log In';
+    } else {
+      btnAuthSubmit.textContent = 'Log In';
+      authToggleText.textContent = 'Need an account?';
+      authToggleBtn.textContent = 'Sign Up';
+    }
+    authError.textContent = '';
   });
+
+  authForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = authEmail.value;
+    const password = authPassword.value;
+    authError.textContent = '';
+    
+    try {
+      if (isSignUpMode) {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+    } catch (error) {
+      authError.textContent = error.message;
+    }
+  });
+
+  if (btnSignOut) {
+    btnSignOut.addEventListener('click', () => {
+      signOut(auth);
+    });
+  }
+
+  // Listen for auth state changes
+  onAuthStateChanged(auth, (user) => {
+    // Hide all views first
+    document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+    
+    if (user) {
+      // User is logged in
+      viewAuth.style.display = 'none';
+      viewVent.classList.add('active');
+      isHomeActive = true;
+      if (bottomDock) bottomDock.style.display = 'flex';
+      if (topHeader) topHeader.style.display = 'flex';
+      
+      // Update dummy profile ID in settings if possible
+      const ventIdEl = document.querySelector('#set-account .setting-desc');
+      if (ventIdEl && ventIdEl.textContent.includes('user_0x')) {
+        ventIdEl.textContent = user.uid.substring(0, 10);
+      }
+      
+    } else {
+      // User is logged out
+      viewAuth.style.display = 'flex';
+      viewAuth.classList.add('active');
+      isHomeActive = false;
+      if (bottomDock) bottomDock.style.display = 'none';
+      if (topHeader) topHeader.style.display = 'none';
+    }
+  });
+
+});
 
   // 5. Settings Logic
   const settingsTabs = document.querySelectorAll('.settings-tab');
