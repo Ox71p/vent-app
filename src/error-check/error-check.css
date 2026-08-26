@@ -165,6 +165,60 @@
   text-decoration: underline;
 }
 
+.error-detail .view-title {
+  text-align: center;
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.error-detail-missing {
+  text-align: center;
+  color: var(--text-muted, #666);
+  font-size: 0.95rem;
+  margin-top: 24px;
+}
+
+.error-detail-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 0 0;
+}
+
+.error-detail-field {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color, #1a1a1a);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.error-detail-field dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: var(--text-muted, #666);
+  margin-bottom: 6px;
+}
+
+.error-detail-field dd {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.error-detail-field dd[data-field="check"] {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: var(--accent-color);
+}
+
 @media (max-width: 600px) {
   .error-check-counts {
     grid-template-columns: repeat(2, minmax(0, 1fr));

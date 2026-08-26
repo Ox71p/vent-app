@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Error Detail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/error-check/error-check.css" />
+  </head>
+  <body>
+    <main class="error-dashboard error-detail">
+      <nav class="error-check-nav" data-error-check-nav>
+        <a href="/">Error Dashboard</a>
+        <a href="/runs.html">Run History</a>
+        <a href="/settings.html">Settings</a>
+      </nav>
+      <h1 class="view-title">Error Detail</h1>
+      <div id="error-detail-body" data-error-detail-body>
+        <p class="error-detail-missing">Finding not found</p>
+      </div>
+    </main>
+    <script type="module" src="/src/error-check/errorDetail.js"></script>
+  </body>
+</html>
