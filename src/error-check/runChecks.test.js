@@ -56,6 +56,43 @@ describe('runChecks', () => {
     expect(run.checks.type.message).toMatch(/Missing script/);
   });
 
+  it('parses ANSI eslint output and ignores NO_COLOR stderr noise', async () => {
+    const ansiStylish = `\u001b[4m/app/src/main.js\u001b[24m
+  \u001b[2m12:7\u001b[22m  \u001b[31merror\u001b[39m  'x' is defined but never used  \u001b[2mno-unused-vars\u001b[22m
+`;
+    const envNoise = "(node:1) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n";
+    let spawnEnv;
+    const run = await runChecks({
+      settings: { compile: false, type: false, lint: true, test: false },
+      spawn: mockSpawn((_command, _args, options) => {
+        spawnEnv = options?.env;
+        return { code: 1, stdout: ansiStylish, stderr: envNoise };
+      }),
+    });
+
+    expect(run.checks.lint.status).toBe('fail');
+    expect(run.checks.lint.findings).toHaveLength(1);
+    expect(run.checks.lint.findings[0].message).toContain('never used');
+    expect(run.checks.lint.findings[0].file).toContain('main.js');
+    expect(run.checks.lint.findings[0].message).not.toMatch(/NO_COLOR/);
+    expect(spawnEnv?.NO_COLOR).toBe('1');
+    expect(spawnEnv).not.toHaveProperty('FORCE_COLOR');
+  });
+
+  it('uses stdout in the fallback when stderr is only env noise', async () => {
+    const run = await runChecks({
+      settings: { compile: false, type: false, lint: true, test: false },
+      spawn: mockSpawn(() => ({
+        code: 1,
+        stdout: 'Oops, something went wrong in eslint',
+        stderr: "(node:9) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n",
+      })),
+    });
+    expect(run.checks.lint.status).toBe('fail');
+    expect(run.checks.lint.findings[0].message).toMatch(/Oops, something went wrong/);
+    expect(run.checks.lint.findings[0].message).not.toMatch(/NO_COLOR/);
+  });
+
   it('invokes eslint via npm run lint without extra args and does not write app source', async () => {
     const calls = [];
     const before = Object.fromEntries(

@@ -1,7 +1,7 @@
 import { spawn as defaultSpawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseOutput } from './parseOutput.js';
+import { parseOutput, stripAnsi } from './parseOutput.js';
 
 export const CHECK_KEYS = ['compile', 'type', 'lint', 'test'];
 
@@ -49,6 +49,38 @@ function missingMessage(check, result) {
   return first || `${check} tool is not available`;
 }
 
+function childEnv() {
+  const env = { ...process.env, NO_COLOR: '1' };
+  delete env.FORCE_COLOR;
+  return env;
+}
+
+function stripNodeEnvWarnings(text) {
+  return stripAnsi(text || '')
+    .replace(/^\(node:\d+\) Warning:.*$/gm, '')
+    .replace(/^\(Use `node --trace-warnings.*\)$/gm, '');
+}
+
+function usableStreams(result) {
+  return {
+    stdout: stripNodeEnvWarnings(result?.stdout),
+    stderr: stripNodeEnvWarnings(result?.stderr),
+    error: result?.error,
+    code: result?.code,
+  };
+}
+
+function fallbackMessage(check, result) {
+  const combined = `${result.stderr || ''}\n${result.stdout || ''}`;
+  const excerpt = combined
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(-3)
+    .join('\n');
+  return excerpt || `${check} exited with code ${result.code}`;
+}
+
 /**
  * @param {(...args: any[]) => any} spawnFn
  * @param {string} command
@@ -62,7 +94,7 @@ async function invoke(spawnFn, command, args, { cwd, timeoutMs }) {
   try {
     child = spawnFn(command, args, {
       cwd,
-      env: process.env,
+      env: childEnv(),
       stdio: ['ignore', 'pipe', 'pipe'],
     });
   } catch (error) {
@@ -158,7 +190,8 @@ export async function runChecks(options = {}) {
     }
 
     const script = SCRIPT_BY_CHECK[check];
-    const result = await invoke(spawnFn, npmCmd, ['run', script], { cwd, timeoutMs });
+    const raw = await invoke(spawnFn, npmCmd, ['run', script], { cwd, timeoutMs });
+    const result = usableStreams(raw);
     let findings = attachFindings(id, check, parseOutput(check, result.stdout, result.stderr));
 
     if (isMissingTool(result, findings)) {
@@ -172,12 +205,10 @@ export async function runChecks(options = {}) {
 
     const failed = result.code !== 0;
     if (failed && findings.length === 0) {
-      const fallback = `${result.stderr || result.stdout || ''}`.trim().split('\n').filter(Boolean).slice(-3).join('\n')
-        || `${check} exited with code ${result.code}`;
       findings = attachFindings(id, check, [{
         file: null,
         line: null,
-        message: fallback,
+        message: fallbackMessage(check, result),
         severity: 'error',
       }]);
     }

@@ -1,7 +1,12 @@
 const CHECKS = new Set(['compile', 'type', 'lint', 'test']);
 
+/** Strip CSI/SGR sequences so stylish eslint and similar parsers see plain text. */
+export function stripAnsi(text) {
+  return String(text ?? '').replace(/\u001B\[[0-9;]*[A-Za-z]/g, '');
+}
+
 function joinOutput(stdout, stderr) {
-  return `${stdout || ''}\n${stderr || ''}`.replace(/\r\n/g, '\n');
+  return stripAnsi(`${stdout || ''}\n${stderr || ''}`).replace(/\r\n/g, '\n');
 }
 
 function cleanPath(file) {

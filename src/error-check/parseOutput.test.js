@@ -5,6 +5,7 @@ import {
   parseTscOutput,
   parseViteOutput,
   parseVitestOutput,
+  stripAnsi,
 } from './parseOutput.js';
 
 const VITE_OUTPUT = `
@@ -30,6 +31,11 @@ const ESLINT_STYLISH = `
   4:10  error  'foo' is not defined  no-undef
 
 ✖ 3 problems (2 errors, 1 warning)
+`;
+
+const ESLINT_STYLISH_ANSI = `\u001b[0m\u001b[4m/app/src/main.js\u001b[24m\u001b[0m
+\u001b[0m  \u001b[2m12:7\u001b[22m  \u001b[31merror\u001b[39m  'x' is defined but never used  \u001b[2mno-unused-vars\u001b[22m\u001b[0m
+\u001b[0m  \u001b[2m20:1\u001b[22m  \u001b[33mwarning\u001b[39m  Unexpected console statement  \u001b[2mno-console\u001b[22m\u001b[0m
 `;
 
 const ESLINT_JSON = `
@@ -90,6 +96,20 @@ describe('parseOutput fixtures', () => {
     expect(findings[1].severity).toBe('warning');
     expect(findings[2].file).toContain('processEntry.mjs');
     expect(parseOutput('lint', ESLINT_STYLISH, '')).toHaveLength(3);
+  });
+
+  it('parses FORCE_COLOR / ANSI stylish eslint output', () => {
+    expect(stripAnsi(ESLINT_STYLISH_ANSI)).toContain('12:7');
+    expect(stripAnsi(ESLINT_STYLISH_ANSI)).not.toMatch(/\u001B/);
+    const findings = parseOutput('lint', ESLINT_STYLISH_ANSI, '');
+    expect(findings).toHaveLength(2);
+    expect(findings[0]).toMatchObject({
+      file: '/app/src/main.js',
+      line: 12,
+      severity: 'error',
+    });
+    expect(findings[0].message).toContain('never used');
+    expect(findings[1].severity).toBe('warning');
   });
 
   it('parses eslint JSON output mixed with npm lifecycle logs', () => {
