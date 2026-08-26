@@ -105,10 +105,8 @@ describe('store', () => {
 
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
     expect(raw.runs[0].id).toBe('run-1');
-    expect(raw.runs[0].checks).toHaveProperty('compile');
-    expect(raw.runs[0].checks).toHaveProperty('type');
-    expect(raw.runs[0].checks).toHaveProperty('lint');
-    expect(raw.runs[0].checks).toHaveProperty('test');
+    expect(Object.keys(stored.checks)).toEqual(['compile', 'type', 'lint', 'test']);
+    expect(Object.keys(raw.runs[0].checks)).toEqual(['compile', 'type', 'lint', 'test']);
   });
 
   it('keeps newest run first and reports pass when no error findings', () => {
