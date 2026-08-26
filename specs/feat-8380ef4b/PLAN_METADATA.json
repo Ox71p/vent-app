@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "featureId": "feat-8380ef4b",
+  "summary": "Add a report-only compile/type/lint/test checker and present findings on an Error Dashboard, Error Detail, Run History, Run Detail, and Settings — without modifying Vent source to fix anything.",
+  "understanding": "Problem: Check the app for errors. Solution: Report findings only; do not change code. Only compile/type/lint/test failures count as errors. Out of scope: fixing discovered errors; checking or reporting any issue class other than compile, type, lint, and test failures.",
+  "decompositionStrategy": "This is a mixed platform-plus-UI feature on a Vite SPA that has only `npm run build` today (no ESLint, TypeScript, or test runner). Ticket 001 owns the single new seam `src/error-check/` (store, runner, parsers, CLI, dashboard view on existing index.html), the Netlify function, Vite middleware, and the lint/type/test tool scripts — a tracer so an operator can run checks and see findings without a schema-only ticket. Tickets 002–004 each own one Design-required HTML surface (error-detail.html; runs.html + run-detail.html; settings.html) and consume 001's store/nav/runner without rewriting them. vite.config.js and package.json stay with 001 so later tickets do not restack those hotspots. src/main.js is a shared touchpoint only (existing dock data-target routing already switches views). Feature integration runs last and may correct cross-page contracts but must not fix Vent journal/NLP/auth source to clear findings.",
+  "previewPath": "/"
+}

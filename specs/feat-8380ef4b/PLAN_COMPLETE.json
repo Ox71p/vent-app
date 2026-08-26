@@ -1,0 +1,233 @@
+{
+  "version": 2,
+  "featureId": "feat-8380ef4b",
+  "summary": "Add a report-only compile/type/lint/test checker and present findings on an Error Dashboard, Error Detail, Run History, Run Detail, and Settings — without modifying Vent source to fix anything.",
+  "understanding": "Problem: Check the app for errors. Solution: Report findings only; do not change code. Only compile/type/lint/test failures count as errors. Out of scope: fixing discovered errors; checking or reporting any issue class other than compile, type, lint, and test failures.",
+  "decompositionStrategy": "This is a mixed platform-plus-UI feature on a Vite SPA that has only `npm run build` today (no ESLint, TypeScript, or test runner). Ticket 001 owns the single new seam `src/error-check/` (store, runner, parsers, CLI, dashboard view on existing index.html), the Netlify function, Vite middleware, and the lint/type/test tool scripts — a tracer so an operator can run checks and see findings without a schema-only ticket. Tickets 002–004 each own one Design-required HTML surface (error-detail.html; runs.html + run-detail.html; settings.html) and consume 001's store/nav/runner without rewriting them. vite.config.js and package.json stay with 001 so later tickets do not restack those hotspots. src/main.js is a shared touchpoint only (existing dock data-target routing already switches views). Feature integration runs last and may correct cross-page contracts but must not fix Vent journal/NLP/auth source to clear findings.",
+  "previewPath": "/",
+  "tasks": [
+    {
+      "title": "[UI] Error Dashboard",
+      "goal": "An operator opening `/` can switch to the Error Dashboard, click `Run checks`, and see compile, type, lint, and test findings for this Vent app. Findings are stored and listed only — the runner never auto-fixes source.",
+      "taskType": "delivery",
+      "specRef": "specs/feat-8380ef4b/001-error-dashboard/spec.md",
+      "acceptanceCriteria": [
+        "File `src/error-check/store.js` exists and exports `getRuns`, `appendRun`, `getLatestRun`, `getFinding`, `getSettings`, and `setSettings`",
+        "`package.json` `scripts` contains keys `lint`, `typecheck`, and `test`",
+        "File `netlify/functions/runChecks.mjs` exists and exports `handler`",
+        "`index.html` contains an element `id=\"view-errors\"` that includes the heading text `Error Dashboard` and a button whose text is `Run checks`",
+        "`index.html` contains a `.dock-item` with `data-target=\"view-errors\"`",
+        "Clicking `Run checks` writes JSON to `localStorage` key `ventErrorRuns` whose latest run has `checks.compile`, `checks.type`, `checks.lint`, and `checks.test`",
+        "`#view-errors` contains no control whose text is `Fix` or `Auto-fix`",
+        "`npx vitest run src/error-check/store.test.js src/error-check/parseOutput.test.js src/error-check/runChecks.test.js` exits 0"
+      ],
+      "testCommand": "npx vitest run src/error-check/store.test.js src/error-check/parseOutput.test.js src/error-check/runChecks.test.js",
+      "phase": "build",
+      "ownedAreas": [
+        "src/error-check/store.js",
+        "src/error-check/runChecks.js",
+        "src/error-check/parseOutput.js",
+        "src/error-check/cli.js",
+        "src/error-check/dashboard.js",
+        "src/error-check/nav.js",
+        "src/error-check/error-check.css",
+        "netlify/functions/runChecks.mjs",
+        "vite.config.js",
+        "eslint.config.js",
+        "tsconfig.json",
+        "index.html#view-errors",
+        "package.json scripts lint/typecheck/test"
+      ],
+      "sharedTouchpoints": [
+        "src/main.js"
+      ],
+      "dependsOn": [],
+      "designSurfaceIds": [
+        "dashboard"
+      ],
+      "browserVerification": {
+        "required": true,
+        "criteria": [
+          {
+            "id": "AC-FE-1",
+            "text": "The Error Dashboard view shows the heading Error Dashboard and a Run checks button",
+            "route": "/"
+          },
+          {
+            "id": "AC-FE-2",
+            "text": "Clicking Run checks lists compile, type, lint, and test results and shows no Fix or Auto-fix control",
+            "route": "/"
+          }
+        ]
+      }
+    },
+    {
+      "title": "[UI] Error Detail",
+      "goal": "An operator can open a single finding from the Error Dashboard and see its check kind, file, line, and message on `/error-detail.html` — still report-only, with no fix action.",
+      "taskType": "delivery",
+      "specRef": "specs/feat-8380ef4b/002-error-detail/spec.md",
+      "acceptanceCriteria": [
+        "File `error-detail.html` exists at the project root",
+        "`error-detail.html` contains the heading text `Error Detail`",
+        "Visiting `/error-detail.html` with no `id` query param shows the text `Finding not found`",
+        "Given a finding stored under `ventErrorRuns`, visiting `/error-detail.html?id={findingId}` shows that finding’s `message` text and its `check` value",
+        "`error-detail.html` contains an anchor with text `Error Dashboard` and `href=\"/\"`",
+        "`error-detail.html` contains no control whose text is `Fix` or `Auto-fix`",
+        "`npx vitest run src/error-check/errorDetail.test.js` exits 0"
+      ],
+      "testCommand": "npx vitest run src/error-check/errorDetail.test.js",
+      "phase": "build",
+      "ownedAreas": [
+        "error-detail.html",
+        "src/error-check/errorDetail.js"
+      ],
+      "sharedTouchpoints": [
+        "src/error-check/store.js",
+        "src/error-check/nav.js",
+        "src/error-check/error-check.css",
+        "vite.config.js"
+      ],
+      "dependsOn": [
+        "[UI] Error Dashboard"
+      ],
+      "designSurfaceIds": [
+        "error-detail"
+      ],
+      "browserVerification": {
+        "required": true,
+        "criteria": [
+          {
+            "id": "AC-FE-3",
+            "text": "error-detail.html shows heading Error Detail and the text Finding not found when no id is provided",
+            "route": "/error-detail.html"
+          }
+        ]
+      }
+    },
+    {
+      "title": "[UI] Run History and Run Detail",
+      "goal": "An operator can list past check runs on `/runs.html` and open one run on `/run-detail.html` to see that run’s compile, type, lint, and test statuses and findings.",
+      "taskType": "delivery",
+      "specRef": "specs/feat-8380ef4b/003-run-history-and-run-detail/spec.md",
+      "acceptanceCriteria": [
+        "File `runs.html` exists at the project root and contains the heading text `Run History`",
+        "Visiting `/runs.html` when `ventErrorRuns.runs` is missing or `[]` shows the text `No check runs yet`",
+        "Given a stored run, `/runs.html` shows that run’s `id` and `status` and a link to `/run-detail.html?id={runId}`",
+        "File `run-detail.html` exists at the project root and contains the heading text `Run Detail`",
+        "Visiting `/run-detail.html` with no `id` query param shows the text `Run not found`",
+        "Given a stored run, `/run-detail.html?id={runId}` shows the labels `compile`, `type`, `lint`, and `test`",
+        "`run-detail.html` and `runs.html` contain no control whose text is `Fix` or `Auto-fix`",
+        "`npx vitest run src/error-check/runsPage.test.js src/error-check/runDetail.test.js` exits 0"
+      ],
+      "testCommand": "npx vitest run src/error-check/runsPage.test.js src/error-check/runDetail.test.js",
+      "phase": "build",
+      "ownedAreas": [
+        "runs.html",
+        "run-detail.html",
+        "src/error-check/runsPage.js",
+        "src/error-check/runDetail.js"
+      ],
+      "sharedTouchpoints": [
+        "src/error-check/store.js",
+        "src/error-check/nav.js",
+        "src/error-check/error-check.css",
+        "vite.config.js"
+      ],
+      "dependsOn": [
+        "[UI] Error Dashboard"
+      ],
+      "designSurfaceIds": [
+        "runs",
+        "run-detail"
+      ],
+      "browserVerification": {
+        "required": true,
+        "criteria": [
+          {
+            "id": "AC-FE-4",
+            "text": "runs.html shows heading Run History and the text No check runs yet when no runs are stored",
+            "route": "/runs.html"
+          },
+          {
+            "id": "AC-FE-5",
+            "text": "run-detail.html shows heading Run Detail and the text Run not found when no id is provided",
+            "route": "/run-detail.html"
+          }
+        ]
+      }
+    },
+    {
+      "title": "[UI] Settings",
+      "goal": "An operator can open `/settings.html` and enable or disable the compile, type, lint, and test checkers; the next `Run checks` skip-disables those categories. There is no auto-fix setting.",
+      "taskType": "delivery",
+      "specRef": "specs/feat-8380ef4b/004-settings/spec.md",
+      "acceptanceCriteria": [
+        "File `settings.html` exists at the project root and contains the heading text `Settings`",
+        "`settings.html` contains labeled controls `Compile`, `Type`, `Lint`, and `Test`",
+        "Toggling `Lint` off writes `settings.lint` as `false` in the `ventErrorRuns` store",
+        "`settings.html` contains the text `Checks report findings only and do not change code.`",
+        "`settings.html` contains no control whose text is `Fix` or `Auto-fix`",
+        "After `settings.lint` is `false`, the next check run stores `checks.lint.status` as `skipped`",
+        "`settings.html` contains an anchor with text `Error Dashboard` and `href=\"/\"`",
+        "`npx vitest run src/error-check/settingsPage.test.js` exits 0"
+      ],
+      "testCommand": "npx vitest run src/error-check/settingsPage.test.js",
+      "phase": "build",
+      "ownedAreas": [
+        "settings.html",
+        "src/error-check/settingsPage.js"
+      ],
+      "sharedTouchpoints": [
+        "src/error-check/store.js",
+        "src/error-check/runChecks.js",
+        "src/error-check/nav.js",
+        "src/error-check/error-check.css",
+        "index.html#view-settings"
+      ],
+      "dependsOn": [
+        "[UI] Error Dashboard"
+      ],
+      "designSurfaceIds": [
+        "settings"
+      ],
+      "browserVerification": {
+        "required": true,
+        "criteria": [
+          {
+            "id": "AC-FE-6",
+            "text": "settings.html shows heading Settings, Compile/Type/Lint/Test controls, the report-only sentence, and no Fix control",
+            "route": "/settings.html"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Integrate, validate, and harden the complete feature",
+      "goal": "Inspect the cumulative Error Dashboard feature from base to HEAD, prove the original report-only compile/type/lint/test goal holds across all five surfaces, and make plus test corrective changes only when a cross-ticket gap is found.",
+      "taskType": "feature_integration",
+      "specRef": "specs/feat-8380ef4b/005-feature-integration/spec.md",
+      "acceptanceCriteria": [
+        "`index.html` contains `id=\"view-errors\"` and the text `Error Dashboard`",
+        "Files `error-detail.html`, `runs.html`, `run-detail.html`, and `settings.html` exist at the project root",
+        "`src/error-check/runChecks.js` does not contain the string `--fix`",
+        "A stored run’s `checks` object has exactly the keys `compile`, `type`, `lint`, and `test`",
+        "`settings.html` contains the text `Checks report findings only and do not change code.`",
+        "`npm test` exits 0",
+        "`npm run build` exits 0",
+        "Every original requirement (report-only compile/type/lint/test check, five named surfaces, no source auto-fix) maps to cumulative code or test evidence"
+      ],
+      "testCommand": "npm test && npm run build",
+      "phase": "build",
+      "ownedAreas": [],
+      "sharedTouchpoints": [
+        "All completed delivery work, for integration fixes only"
+      ],
+      "dependsOn": [
+        "[UI] Error Dashboard",
+        "[UI] Error Detail",
+        "[UI] Run History and Run Detail",
+        "[UI] Settings"
+      ]
+    }
+  ]
+}
