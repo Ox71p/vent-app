@@ -1,0 +1,41 @@
+export default [
+  {
+    ignores: ['dist/**', 'node_modules/**'],
+  },
+  {
+    files: ['src/**/*.js', 'netlify/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        window: 'readonly',
+        document: 'readonly',
+        localStorage: 'readonly',
+        sessionStorage: 'readonly',
+        fetch: 'readonly',
+        console: 'readonly',
+        navigator: 'readonly',
+        location: 'readonly',
+        history: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        queueMicrotask: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
+        HTMLElement: 'readonly',
+        Event: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
+        crypto: 'readonly',
+        globalThis: 'readonly',
+      },
+    },
+    rules: {
+      'no-undef': 'error',
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      'no-empty': 'warn',
+    },
+  },
+];

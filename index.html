@@ -102,6 +102,9 @@
             </div>
             <div id="authError" class="auth-error-msg"></div>
           </form>
+          <p class="error-dashboard-auth-wrap">
+            <a href="#view-errors" id="error-dashboard-auth-link">Error Dashboard</a>
+          </p>
         </div>
       </main>
 
@@ -633,6 +636,37 @@
           </section>
         </div>
       </main>
+
+      <!-- VIEW: ERROR DASHBOARD -->
+      <main class="app-view" id="view-errors">
+        <div class="error-dashboard">
+          <nav class="error-check-nav" data-error-check-nav></nav>
+          <h2 class="view-title">Error Dashboard</h2>
+          <p class="error-dashboard-lead">Compile, type, lint, and test findings for this app. Checks report issues only and never change source.</p>
+          <button type="button" id="btn-run-checks" class="settings-btn">Run checks</button>
+          <p id="error-run-status" class="error-run-status" aria-live="polite"></p>
+          <div id="error-check-counts" class="error-check-counts">
+            <div class="error-check-count" data-check="compile">
+              <span class="error-check-label">compile</span>
+              <span class="error-check-value">—</span>
+            </div>
+            <div class="error-check-count" data-check="type">
+              <span class="error-check-label">type</span>
+              <span class="error-check-value">—</span>
+            </div>
+            <div class="error-check-count" data-check="lint">
+              <span class="error-check-label">lint</span>
+              <span class="error-check-value">—</span>
+            </div>
+            <div class="error-check-count" data-check="test">
+              <span class="error-check-label">test</span>
+              <span class="error-check-value">—</span>
+            </div>
+          </div>
+          <p id="error-findings-empty" class="error-findings-empty">No check runs yet</p>
+          <ul id="error-findings-list" class="error-findings-list"></ul>
+        </div>
+      </main>
     </div>
 
     <!-- Toast Notification -->
@@ -696,6 +730,14 @@
         </svg>
         <span class="dock-label">To do</span>
       </div>
+      <div class="dock-item" data-target="view-errors">
+        <svg class="dock-icon errors-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span class="dock-label">Errors</span>
+      </div>
       <div class="dock-item" data-target="view-settings">
         <svg class="dock-icon settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
@@ -716,5 +758,6 @@
     </div>
 
     <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/error-check/dashboard.js"></script>
   </body>
 </html>

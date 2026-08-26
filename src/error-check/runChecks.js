@@ -1,0 +1,191 @@
+import { spawn as defaultSpawn } from 'node:child_process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { parseOutput } from './parseOutput.js';
+
+export const CHECK_KEYS = ['compile', 'type', 'lint', 'test'];
+
+const SCRIPT_BY_CHECK = {
+  compile: 'build',
+  type: 'typecheck',
+  lint: 'lint',
+  test: 'test',
+};
+
+const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+
+const MISSING_PATTERNS = [
+  /Missing script:/i,
+  /npm ERR! missing script/i,
+  /command not found/i,
+  /(?:^|\n)sh:\s*\d*:\s+\S+:\s+not found/i,
+  /is not recognized as an internal or external command/i,
+];
+
+function defaultSettings(partial) {
+  const settings = { compile: true, type: true, lint: true, test: true };
+  if (!partial || typeof partial !== 'object') return settings;
+  for (const key of CHECK_KEYS) {
+    if (typeof partial[key] === 'boolean') settings[key] = partial[key];
+  }
+  return settings;
+}
+
+function makeId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function isMissingTool(result, findings = []) {
+  if (findings.length > 0) return false;
+  if (result?.error?.code === 'ENOENT') return true;
+  const text = `${result?.stderr || ''}\n${result?.stdout || ''}\n${result?.error?.message || ''}`;
+  return MISSING_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+function missingMessage(check, result) {
+  const text = `${result?.stderr || ''}\n${result?.stdout || ''}`.trim();
+  const first = text.split('\n').find((line) => line.trim()) || result?.error?.message;
+  return first || `${check} tool is not available`;
+}
+
+async function invoke(spawnFn, command, args, { cwd, timeoutMs }) {
+  let child;
+  try {
+    child = spawnFn(command, args, {
+      cwd,
+      env: process.env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch (error) {
+    return { code: 127, stdout: '', stderr: error.message || String(error), error };
+  }
+
+  if (child && typeof child.then === 'function') {
+    const result = await child;
+    return {
+      code: result.code ?? 0,
+      stdout: result.stdout ?? '',
+      stderr: result.stderr ?? '',
+      error: result.error,
+    };
+  }
+
+  if (child && typeof child.on !== 'function') {
+    return {
+      code: child.code ?? 0,
+      stdout: child.stdout ?? '',
+      stderr: child.stderr ?? '',
+      error: child.error,
+    };
+  }
+
+  return await new Promise((resolve) => {
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+    const finish = (code, error) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      resolve({ code: code ?? (error ? 127 : 0), stdout, stderr, error });
+    };
+
+    const timer = timeoutMs
+      ? setTimeout(() => {
+          try { child.kill?.('SIGTERM'); } catch { /* ignore */ }
+          finish(124, new Error(`timed out after ${timeoutMs}ms`));
+        }, timeoutMs)
+      : null;
+
+    if (child.stdout?.on) {
+      child.stdout.on('data', (chunk) => { stdout += String(chunk); });
+    }
+    if (child.stderr?.on) {
+      child.stderr.on('data', (chunk) => { stderr += String(chunk); });
+    }
+    child.on?.('error', (error) => finish(127, error));
+    child.on?.('close', (code) => finish(code));
+  });
+}
+
+function attachFindings(runId, check, parsed) {
+  return parsed.map((item, index) => ({
+    id: `${runId}:${check}:${index}`,
+    runId,
+    check,
+    file: item.file ?? null,
+    line: item.line ?? null,
+    message: item.message,
+    severity: item.severity === 'warning' ? 'warning' : 'error',
+  }));
+}
+
+function runStatusFromChecks(checks) {
+  for (const key of CHECK_KEYS) {
+    const check = checks[key];
+    if (!check || check.status === 'skipped') continue;
+    if (check.status === 'fail') return 'fail';
+    if ((check.findings || []).some((finding) => finding.severity === 'error')) return 'fail';
+  }
+  return 'pass';
+}
+
+export async function runChecks(options = {}) {
+  const settings = defaultSettings(options.settings);
+  const spawnFn = options.spawn || defaultSpawn;
+  const cwd = options.cwd || PROJECT_ROOT;
+  const timeoutMs = options.timeoutMs ?? 180000;
+  const npmCmd = options.npmCommand || (process.platform === 'win32' ? 'npm.cmd' : 'npm');
+
+  const startedAt = new Date().toISOString();
+  const id = options.runId || makeId();
+  const checks = {};
+
+  for (const check of CHECK_KEYS) {
+    if (!settings[check]) {
+      checks[check] = { status: 'skipped', findings: [] };
+      continue;
+    }
+
+    const script = SCRIPT_BY_CHECK[check];
+    const result = await invoke(spawnFn, npmCmd, ['run', script], { cwd, timeoutMs });
+    let findings = attachFindings(id, check, parseOutput(check, result.stdout, result.stderr));
+
+    if (isMissingTool(result, findings)) {
+      checks[check] = {
+        status: 'skipped',
+        findings: [],
+        message: missingMessage(check, result),
+      };
+      continue;
+    }
+
+    const failed = result.code !== 0;
+    if (failed && findings.length === 0) {
+      const fallback = `${result.stderr || result.stdout || ''}`.trim().split('\n').filter(Boolean).slice(-3).join('\n')
+        || `${check} exited with code ${result.code}`;
+      findings = attachFindings(id, check, [{
+        file: null,
+        line: null,
+        message: fallback,
+        severity: 'error',
+      }]);
+    }
+
+    checks[check] = {
+      status: failed || findings.some((finding) => finding.severity === 'error') ? 'fail' : 'pass',
+      findings,
+      exitCode: result.code,
+    };
+  }
+
+  const finishedAt = new Date().toISOString();
+  return {
+    id,
+    startedAt,
+    finishedAt,
+    status: runStatusFromChecks(checks),
+    checks,
+  };
+}
