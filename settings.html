@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/error-check/error-check.css" />
+  </head>
+  <body class="error-check-page">
+    <main class="error-dashboard error-settings">
+      <nav class="error-check-nav" data-error-check-nav>
+        <a href="/">Error Dashboard</a>
+        <a href="/runs.html">Run History</a>
+        <a href="/settings.html" aria-current="page">Settings</a>
+      </nav>
+      <h1 class="view-title">Settings</h1>
+      <p class="error-dashboard-lead">Checks report findings only and do not change code.</p>
+      <form class="error-settings-form" id="error-settings-form" data-error-settings-form>
+        <label class="error-settings-row">
+          <span class="error-settings-label">Compile</span>
+          <span class="toggle-switch">
+            <input type="checkbox" id="setting-compile" name="compile" data-check="compile" checked>
+            <span class="slider round"></span>
+          </span>
+        </label>
+        <label class="error-settings-row">
+          <span class="error-settings-label">Type</span>
+          <span class="toggle-switch">
+            <input type="checkbox" id="setting-type" name="type" data-check="type" checked>
+            <span class="slider round"></span>
+          </span>
+        </label>
+        <label class="error-settings-row">
+          <span class="error-settings-label">Lint</span>
+          <span class="toggle-switch">
+            <input type="checkbox" id="setting-lint" name="lint" data-check="lint" checked>
+            <span class="slider round"></span>
+          </span>
+        </label>
+        <label class="error-settings-row">
+          <span class="error-settings-label">Test</span>
+          <span class="toggle-switch">
+            <input type="checkbox" id="setting-test" name="test" data-check="test" checked>
+            <span class="slider round"></span>
+          </span>
+        </label>
+      </form>
+    </main>
+    <script type="module" src="/src/error-check/settingsPage.js"></script>
+  </body>
+</html>
