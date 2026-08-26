@@ -71,11 +71,11 @@ describe('feature integration: report-only compile/type/lint/test', () => {
   it('keeps MPA pages scrollable and linked through the shared nav helper', () => {
     for (const html of [SURFACES.errorDetail, SURFACES.runs, SURFACES.runDetail, SURFACES.settings]) {
       expect(html).toMatch(/<body class="error-check-page">/);
-      expect(html).toMatch(/<a\s+href="\/"\s*>Error Dashboard<\/a>/);
+      expect(html).toMatch(/<a\s+href="\/#view-errors"\s*>Error Dashboard<\/a>/);
       expect(html).not.toMatch(FIX_CONTROL);
     }
     expect(ERROR_CHECK_NAV_ITEMS.map((item) => [item.label, item.href])).toEqual([
-      ['Error Dashboard', '/'],
+      ['Error Dashboard', '/#view-errors'],
       ['Run History', '/runs.html'],
       ['Settings', '/settings.html'],
     ]);

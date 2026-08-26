@@ -39,7 +39,7 @@ describe('error-detail.html', () => {
   it('contains the Error Detail heading and dashboard link', () => {
     expect(pageHtml).toContain('Error Detail');
     expect(pageHtml).toMatch(/<body class="error-check-page">/);
-    expect(pageHtml).toMatch(/<a\s+href="\/"\s*>Error Dashboard<\/a>/);
+    expect(pageHtml).toMatch(/<a\s+href="\/#view-errors"\s*>Error Dashboard<\/a>/);
     expect(pageHtml).toMatch(/<a\s+href="\/runs\.html"\s*>Run History<\/a>/);
     expect(pageHtml).not.toMatch(/>\s*Fix\s*</);
     expect(pageHtml).not.toMatch(/>\s*Auto-fix\s*</);

@@ -44,7 +44,7 @@ function mockStore(runs = []) {
 describe('runs.html', () => {
   it('contains the Run History heading, dashboard link, and empty copy', () => {
     expect(pageHtml).toContain('Run History');
-    expect(pageHtml).toMatch(/<a\s+href="\/"\s*>Error Dashboard<\/a>/);
+    expect(pageHtml).toMatch(/<a\s+href="\/#view-errors"\s*>Error Dashboard<\/a>/);
     expect(pageHtml).toContain('No check runs yet');
     expect(pageHtml).not.toMatch(/>\s*Fix\s*</);
     expect(pageHtml).not.toMatch(/>\s*Auto-fix\s*</);

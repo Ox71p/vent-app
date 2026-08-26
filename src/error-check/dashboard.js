@@ -17,7 +17,19 @@ function collectFindings(run) {
   return CHECKS.flatMap((key) => run.checks[key]?.findings || []);
 }
 
-function showErrorView() {
+/**
+ * @param {string | null | undefined} [hash]
+ * @returns {boolean}
+ */
+export function hashTargetsErrorView(hash) {
+  const value = hash == null
+    ? (typeof location !== 'undefined' ? location.hash : '')
+    : hash;
+  return String(value).replace(/^#/, '') === 'view-errors';
+}
+
+export function showErrorView() {
+  if (typeof document === 'undefined') return;
   document.querySelectorAll('.app-view').forEach((view) => {
     view.classList.remove('active');
   });
@@ -28,6 +40,10 @@ function showErrorView() {
   document.querySelectorAll('.dock-item').forEach((item) => {
     item.classList.toggle('active', item.getAttribute('data-target') === 'view-errors');
   });
+}
+
+export function restoreErrorViewFromHash(hash) {
+  if (hashTargetsErrorView(hash)) showErrorView();
 }
 
 export function renderDashboard(root = typeof document !== 'undefined' ? document : null) {
@@ -125,6 +141,7 @@ function init() {
     event.preventDefault();
     showErrorView();
   });
+  restoreErrorViewFromHash();
 }
 
 if (typeof document !== 'undefined') {
@@ -132,5 +149,14 @@ if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
+  }
+  // Vent's main.js selects auth/home on DOMContentLoaded. Restore after that.
+  document.addEventListener('DOMContentLoaded', () => {
+    restoreErrorViewFromHash();
+  });
+  if (typeof window !== 'undefined') {
+    window.addEventListener('hashchange', () => {
+      restoreErrorViewFromHash();
+    });
   }
 }

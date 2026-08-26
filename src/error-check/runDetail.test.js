@@ -58,7 +58,7 @@ function mockStore(runById = {}) {
 describe('run-detail.html', () => {
   it('contains the Run Detail heading and history / dashboard links', () => {
     expect(pageHtml).toContain('Run Detail');
-    expect(pageHtml).toMatch(/<a\s+href="\/"\s*>Error Dashboard<\/a>/);
+    expect(pageHtml).toMatch(/<a\s+href="\/#view-errors"\s*>Error Dashboard<\/a>/);
     expect(pageHtml).toMatch(/<a\s+href="\/runs\.html"\s*>Run History<\/a>/);
     expect(pageHtml).toContain('Run not found');
     expect(pageHtml).not.toMatch(/>\s*Fix\s*</);

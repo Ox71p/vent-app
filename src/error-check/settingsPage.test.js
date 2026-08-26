@@ -137,7 +137,7 @@ describe('settings.html', () => {
     expect(pageHtml).toMatch(/<label[^>]*>[\s\S]*Test[\s\S]*<\/label>/);
     expect(pageHtml).toContain(REPORT_ONLY_COPY);
     expect(pageHtml).toContain('Checks report findings only and do not change code.');
-    expect(pageHtml).toMatch(/<a\s+href="\/"\s*>Error Dashboard<\/a>/);
+    expect(pageHtml).toMatch(/<a\s+href="\/#view-errors"\s*>Error Dashboard<\/a>/);
     expect(pageHtml).toContain('/src/error-check/settingsPage.js');
     expect(pageHtml).not.toMatch(/>\s*Fix\s*</);
     expect(pageHtml).not.toMatch(/>\s*Auto-fix\s*</);

@@ -1,5 +1,5 @@
 export const ERROR_CHECK_NAV_ITEMS = [
-  { id: 'dashboard', href: '/', label: 'Error Dashboard' },
+  { id: 'dashboard', href: '/#view-errors', label: 'Error Dashboard' },
   { id: 'runs', href: '/runs.html', label: 'Run History' },
   { id: 'settings', href: '/settings.html', label: 'Settings' },
 ];
