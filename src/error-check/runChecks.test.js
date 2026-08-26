@@ -61,11 +61,12 @@ describe('runChecks', () => {
   \u001b[2m12:7\u001b[22m  \u001b[31merror\u001b[39m  'x' is defined but never used  \u001b[2mno-unused-vars\u001b[22m
 `;
     const envNoise = "(node:1) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n";
-    let spawnEnv;
+    /** @type {NodeJS.ProcessEnv} */
+    let spawnEnv = {};
     const run = await runChecks({
       settings: { compile: false, type: false, lint: true, test: false },
       spawn: mockSpawn((_command, _args, options) => {
-        spawnEnv = options?.env;
+        spawnEnv = (options && options.env) || {};
         return { code: 1, stdout: ansiStylish, stderr: envNoise };
       }),
     });
@@ -75,7 +76,7 @@ describe('runChecks', () => {
     expect(run.checks.lint.findings[0].message).toContain('never used');
     expect(run.checks.lint.findings[0].file).toContain('main.js');
     expect(run.checks.lint.findings[0].message).not.toMatch(/NO_COLOR/);
-    expect(spawnEnv?.NO_COLOR).toBe('1');
+    expect(spawnEnv.NO_COLOR).toBe('1');
     expect(spawnEnv).not.toHaveProperty('FORCE_COLOR');
   });
 

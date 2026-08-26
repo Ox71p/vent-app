@@ -50,7 +50,9 @@ function missingMessage(check, result) {
 }
 
 function childEnv() {
-  const env = { ...process.env, NO_COLOR: '1' };
+  /** @type {NodeJS.ProcessEnv} */
+  const env = { ...process.env };
+  env.NO_COLOR = '1';
   delete env.FORCE_COLOR;
   return env;
 }
