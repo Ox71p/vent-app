@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Run Detail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/error-check/error-check.css" />
+  </head>
+  <body class="error-check-page">
+    <main class="error-dashboard error-run-detail">
+      <nav class="error-check-nav" data-error-check-nav>
+        <a href="/">Error Dashboard</a>
+        <a href="/runs.html">Run History</a>
+        <a href="/settings.html">Settings</a>
+      </nav>
+      <h1 class="view-title">Run Detail</h1>
+      <div id="run-detail-body" data-run-detail-body>
+        <p class="error-detail-missing">Run not found</p>
+      </div>
+    </main>
+    <script type="module" src="/src/error-check/runDetail.js"></script>
+  </body>
+</html>
