@@ -8,7 +8,9 @@
     "lib": ["ES2022", "DOM"],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "maxNodeModuleJsDepth": 0
+    "maxNodeModuleJsDepth": 0,
+    "types": ["node"]
   },
-  "include": ["src/**/*.js", "netlify/**/*.mjs"]
+  "include": ["src/**/*.js", "netlify/**/*.mjs"],
+  "exclude": ["src/main.js"]
 }

@@ -49,7 +49,15 @@ function missingMessage(check, result) {
   return first || `${check} tool is not available`;
 }
 
+/**
+ * @param {(...args: any[]) => any} spawnFn
+ * @param {string} command
+ * @param {string[]} args
+ * @param {{ cwd: string, timeoutMs?: number }} options
+ * @returns {Promise<{ code: number | null, stdout: string, stderr: string, error?: any }>}
+ */
 async function invoke(spawnFn, command, args, { cwd, timeoutMs }) {
+  /** @type {any} */
   let child;
   try {
     child = spawnFn(command, args, {
@@ -58,7 +66,8 @@ async function invoke(spawnFn, command, args, { cwd, timeoutMs }) {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
   } catch (error) {
-    return { code: 127, stdout: '', stderr: error.message || String(error), error };
+    const err = /** @type {any} */ (error);
+    return { code: 127, stdout: '', stderr: err.message || String(error), error: err };
   }
 
   if (child && typeof child.then === 'function') {

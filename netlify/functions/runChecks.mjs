@@ -30,13 +30,14 @@ export const handler = async (event = {}) => {
       body: JSON.stringify({ run }),
     };
   } catch (error) {
+    const err = /** @type {any} */ (error);
     return {
       statusCode: 500,
       headers: {
         ...headers,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ error: error.message || 'Failed to run checks' }),
+      body: JSON.stringify({ error: err.message || 'Failed to run checks' }),
     };
   }
 };

@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "@types/node": "^22.20.1",
     "eslint": "^9.18.0",
     "typescript": "^5.8.2",
     "vite": "^8.1.1",

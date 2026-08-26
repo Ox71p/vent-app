@@ -13,6 +13,12 @@ import {
 function memoryStorage() {
   const data = new Map();
   return {
+    get length() {
+      return data.size;
+    },
+    key(index) {
+      return [...data.keys()][index] ?? null;
+    },
     getItem: (key) => (data.has(key) ? data.get(key) : null),
     setItem: (key, value) => { data.set(String(key), String(value)); },
     removeItem: (key) => { data.delete(key); },
@@ -53,11 +59,11 @@ function sampleRun(overrides = {}) {
 }
 
 beforeEach(() => {
-  globalThis.localStorage = memoryStorage();
+  /** @type {any} */ (globalThis).localStorage = memoryStorage();
 });
 
 afterEach(() => {
-  delete globalThis.localStorage;
+  /** @type {any} */ (globalThis).localStorage = undefined;
 });
 
 describe('store', () => {

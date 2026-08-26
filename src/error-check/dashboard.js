@@ -89,7 +89,7 @@ export function renderDashboard(root = typeof document !== 'undefined' ? documen
 }
 
 async function onRunChecks() {
-  const btn = document.getElementById('btn-run-checks');
+  const btn = /** @type {HTMLButtonElement | null} */ (document.getElementById('btn-run-checks'));
   const statusEl = document.getElementById('error-run-status');
   if (btn) btn.disabled = true;
   if (statusEl) {
@@ -109,7 +109,8 @@ async function onRunChecks() {
     if (payload.run) appendRun(payload.run);
     renderDashboard();
   } catch (error) {
-    if (statusEl) statusEl.textContent = `Could not run checks: ${error.message}`;
+    const err = /** @type {any} */ (error);
+    if (statusEl) statusEl.textContent = `Could not run checks: ${err.message}`;
   } finally {
     if (btn) btn.disabled = false;
   }
